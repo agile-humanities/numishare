@@ -41,7 +41,7 @@
 			<div class="container">
 				<div class="row">
 					<!-- display title and description in the jumbotron, including featured object, if available -->
-					<xsl:choose>
+					<!--<xsl:choose>
 						<xsl:when test="features_enabled = true()">
 							<div class="col-md-9">
 								<h1><xsl:value-of select="title"/></h1>
@@ -57,7 +57,15 @@
 								<p><xsl:value-of select="description"/></p>
 							</div>
 						</xsl:otherwise>
-					</xsl:choose>
+					</xsl:choose>-->
+					<div class="col-md-7">
+						<h1>CHRR <i>Online</i></h1>
+						<p><xsl:value-of select="description"/></p>
+					</div>
+					<div class="col-md-5 jumbotron-logo">
+						<img src="{$include_path}/images/ans_medium.png" alt="ANS"/>
+						<img src="{$include_path}/images/ucl_medium.png" alt="UCL"/>
+					</div>
 				</div>
 			</div>
 		</div>	
