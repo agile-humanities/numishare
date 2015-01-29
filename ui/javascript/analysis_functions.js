@@ -392,7 +392,7 @@ $(document).ready(function () {
 	$(".showFilter").each(function () {
 		var tthis = this;
 		$(this).fancybox({
-			onStart: function () {
+			beforeLoad: function () {
 				var formId = tthis.id.split('-')[0] + '-form';
 				$('#formId').html(formId);
 			}
@@ -417,9 +417,10 @@ $(document).ready(function () {
 	})
 	
 	//filter button activation
-	$('#advancedSearchForm').submit(function () {
+	$('#advancedSearchForm').submit(function () {		
 		var formId = $('#formId').text();
 		var q = assembleQuery('advancedSearchForm');
+		alert(q);
 		$('#' + formId + ' .filter-div').children('span').html(q);
 		$('#' + formId + ' .filter-div').show();
 		$.get('get_hoards', {
@@ -429,7 +430,7 @@ $(document).ready(function () {
 			$('#' + formId + ' .compare-div').html(data);
 		});
 		$.fancybox.close();
-		return false;
+		return false;		
 	});
 	
 	//remove filter
