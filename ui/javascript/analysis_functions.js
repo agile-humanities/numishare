@@ -420,7 +420,6 @@ $(document).ready(function () {
 	$('#advancedSearchForm').submit(function () {		
 		var formId = $('#formId').text();
 		var q = assembleQuery('advancedSearchForm');
-		alert(q);
 		$('#' + formId + ' .filter-div').children('span').html(q);
 		$('#' + formId + ' .filter-div').show();
 		$.get('get_hoards', {
