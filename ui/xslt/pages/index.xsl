@@ -37,11 +37,11 @@
 	</xsl:template>
 
 	<xsl:template name="index">
-		<div class="jumbotron">
+		<!--<div class="jumbotron">
 			<div class="container">
 				<div class="row">
-					<!-- display title and description in the jumbotron, including featured object, if available -->
-					<!--<xsl:choose>
+					<!-\- display title and description in the jumbotron, including featured object, if available -\->
+					<xsl:choose>
 						<xsl:when test="features_enabled = true()">
 							<div class="col-md-9">
 								<h1><xsl:value-of select="title"/></h1>
@@ -57,7 +57,7 @@
 								<p><xsl:value-of select="description"/></p>
 							</div>
 						</xsl:otherwise>
-					</xsl:choose>-->
+					</xsl:choose>
 					<div class="col-md-7">
 						<h1>CHRR <i>Online</i></h1>
 						<p><xsl:value-of select="description"/></p>
@@ -68,7 +68,8 @@
 					</div>
 				</div>
 			</div>
-		</div>	
+		</div>-->	
+		<img src="{$include_path}/images/banner.jpg" style="width:100%"/>
 		<div class="container-fluid">
 			<div class="row">
 				<div class="col-md-9">					
