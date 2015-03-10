@@ -69,7 +69,7 @@
 				</div>
 			</div>
 		</div>-->	
-		<img src="{$include_path}/images/banner.jpg" style="width:100%"/>
+		<img src="{$include_path}/images/banner2.jpg" style="width:100%"/>
 		<div class="container-fluid">
 			<div class="row">
 				<div class="col-md-9">					
