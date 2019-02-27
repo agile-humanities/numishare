@@ -375,14 +375,7 @@
 							<span id="path">
 								<xsl:choose>
 									<xsl:when test="$recordType = 'physical'">
-										<xsl:choose>
-											<xsl:when test="//config/uri_space">
-												<xsl:value-of select="//config/uri_space"/>
-											</xsl:when>
-											<xsl:otherwise>
-												<xsl:value-of select="concat($display_path, 'id/')"/>
-											</xsl:otherwise>
-										</xsl:choose>
+										<xsl:value-of select="concat($display_path, 'id/')"/>
 									</xsl:when>
 									<xsl:when test="$recordType = 'conceptual' and $hasFindspots = false()">
 										<xsl:value-of select="concat($display_path, 'id/')"/>
@@ -739,11 +732,10 @@
 			<xsl:when test="$mode = 'compare'">
 				<div>
 					<xsl:apply-templates select="nuds:descMeta/nuds:physDesc[child::*]"/>
-					<!-- process $typeDesc differently -->
+					<!-- apply-template only to NUDS-explicit typeDesc when there is one or more type references -->					
 					<xsl:choose>
-						<!-- apply-template only to NUDS-explicit typeDesc when there is one or more type references -->
-						<xsl:when test="nuds:descMeta/nuds:refDesc/nuds:reference[@xlink:href][@xlink:arcrole='nmo:hasTypeSeriesItem']">
-							<xsl:apply-templates select="$nudsGroup//object[not(@xlink:href)]/descendant::nuds:typeDesc"/>
+						<xsl:when test="nuds:descMeta/nuds:typeDesc[not(@xlink:href)]">
+							<xsl:apply-templates select="nuds:descMeta/nuds:typeDesc"/>
 						</xsl:when>
 						<xsl:otherwise>
 							<xsl:for-each select="$nudsGroup//nuds:typeDesc">
@@ -831,11 +823,10 @@
 				<div class="col-md-6 {if($lang='ar') then 'pull-right' else ''}">
 					<xsl:apply-templates select="nuds:descMeta/nuds:physDesc[child::*]"/>
 					
-					<!-- process $typeDesc differently -->
+					<!-- apply-template only to NUDS-explicit typeDesc when there is one or more type references -->					
 					<xsl:choose>
-						<!-- apply-template only to NUDS-explicit typeDesc when there is one or more type references -->
-						<xsl:when test="nuds:descMeta/nuds:refDesc/nuds:reference[@xlink:href][@xlink:arcrole='nmo:hasTypeSeriesItem']">
-							<xsl:apply-templates select="$nudsGroup//object[not(@xlink:href)]/descendant::nuds:typeDesc"/>
+						<xsl:when test="nuds:descMeta/nuds:typeDesc[not(@xlink:href)]">
+							<xsl:apply-templates select="nuds:descMeta/nuds:typeDesc"/>
 						</xsl:when>
 						<xsl:otherwise>
 							<xsl:for-each select="$nudsGroup//nuds:typeDesc">
@@ -846,8 +837,7 @@
 							</xsl:for-each>
 						</xsl:otherwise>
 					</xsl:choose>
-					
-					
+						
 					<xsl:apply-templates select="nuds:descMeta/nuds:undertypeDesc"/>
 					<xsl:apply-templates select="nuds:descMeta/nuds:findspotDesc"/>
 				</div>
