@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Author: Ethan Gruber
+	Date last modified: April 2019
+	Function: Generic templates for serializing Solr documents for browse, ajax_results, and the compare section into HTML.
+		Inludes templates for serializing the numishareResults XML document into HTML for example specimens for coin type corpora -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	xmlns:numishare="https://github.com/ewg118/numishare" xmlns:res="http://www.w3.org/2005/sparql-results#" exclude-result-prefixes="#all" version="2.0">
 
 	<!-- default document display mode; metadata with images in table-like layout -->
 	<xsl:template match="doc" mode="default">
+		<xsl:variable name="object-path">
+			<xsl:choose>
+				<xsl:when test="//config/collection_type = 'object' and string(//config/uri_space)">
+					<xsl:value-of select="//config/uri_space"/>
+				</xsl:when>
+				<xsl:when test="//config/union_type_catalog/@enabled = true()">
+					<xsl:value-of select="str[@name='uri_space']"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="concat($display_path, 'id/')"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
+		
 		<div class="row result-doc">
 			<div class="col-md-12">
 				<h4>
@@ -28,6 +46,7 @@
 
 			<xsl:call-template name="result_image">
 				<xsl:with-param name="alignment" select="//config/theme/layouts/*[name() = $pipeline]/image_location"/>
+				<xsl:with-param name="object-path" select="$object-path"/>
 			</xsl:call-template>
 
 			<div class="col-md-7 col-lg-8">
@@ -38,6 +57,20 @@
 	</xsl:template>
 
 	<xsl:template match="doc" mode="grid">
+		<xsl:variable name="object-path">
+			<xsl:choose>
+				<xsl:when test="//config/collection_type = 'object' and string(//config/uri_space)">
+					<xsl:value-of select="//config/uri_space"/>
+				</xsl:when>
+				<xsl:when test="//config/union_type_catalog/@enabled = true()">
+					<xsl:value-of select="str[@name='uri_space']"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="concat($display_path, 'id/')"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
+		
 		<div class="col-xs-12 col-sm-6 col-md-4 grid-doc">
 			<h4>
 				<xsl:if test="$lang = 'ar'">
@@ -75,15 +108,26 @@
 						</a>
 					</xsl:if>
 				</xsl:when>
-				<xsl:when test="str[@name = 'recordType'] = 'conceptual'">
+				<xsl:when test="str[@name = 'recordType'] = 'conceptual' and matches(/content/config/sparql_endpoint, '^https?://')">
 					<xsl:variable name="id" select="str[@name = 'recordId']"/>
-					<xsl:apply-templates select="$sparqlResult//group[@id = $id]" mode="results"/>
+					<xsl:apply-templates select="doc('input:numishareResults')//group[@id = $id]" mode="results"/>
 				</xsl:when>
 			</xsl:choose>
 		</div>
 	</xsl:template>
 
 	<xsl:template match="doc" mode="compare">
+		<xsl:variable name="object-path">
+			<xsl:choose>
+				<xsl:when test="//config/collection_type = 'object' and string(//config/uri_space)">
+					<xsl:value-of select="//config/uri_space"/>
+				</xsl:when>				
+				<xsl:otherwise>
+					<xsl:value-of select="concat($display_path, 'id/')"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
+		
 		<div class="row result-doc">
 			<div class="col-md-12">
 				<h4>
@@ -300,9 +344,11 @@
 						</dt>
 						<dd>
 							<xsl:for-each select="arr[@name = 'provenance_facet']/str">
+								<xsl:sort select="substring-before(., ':')" order="descending"/>
+								
 								<xsl:value-of select="."/>
 								<xsl:if test="not(position() = last())">
-									<xsl:text>, </xsl:text>
+									<br/>
 								</xsl:if>
 							</xsl:for-each>
 						</dd>
@@ -650,6 +696,8 @@
 
 	<xsl:template name="result_image">
 		<xsl:param name="alignment"/>
+		<xsl:param name="object-path"/>
+		
 		<div class="col-md-5 col-lg-4 {if ($alignment = 'right') then 'pull-right' else ''}">
 			<xsl:choose>
 				<xsl:when test="str[@name = 'recordType'] = 'physical'">
@@ -668,9 +716,9 @@
 						</a>
 					</xsl:if>
 				</xsl:when>
-				<xsl:when test="str[@name = 'recordType'] = 'conceptual'">
+				<xsl:when test="str[@name = 'recordType'] = 'conceptual' and matches(/content/config/sparql_endpoint, '^https?://')">
 					<xsl:variable name="id" select="str[@name = 'recordId']"/>
-					<xsl:apply-templates select="$sparqlResult//group[@id = $id]" mode="results"/>
+					<xsl:apply-templates select="doc('input:numishareResults')//group[@id = $id]" mode="results"/>
 				</xsl:when>
 			</xsl:choose>
 		</div>
@@ -738,16 +786,9 @@
 								<xsl:choose>
 									<xsl:when test="contains($field, 'symbol_')">
 										<xsl:variable name="position" select="tokenize($field, '_')[3]"/>
-										<xsl:variable name="langParam"
-											select="
-												if (string($lang)) then
-													$lang
-												else
-													'en'"/>
-
 										<xsl:choose>
-											<xsl:when test="$positions//position[@value = $position]/label[@lang = $langParam]">
-												<xsl:value-of select="$positions//position[@value = $position]/label[@lang = $langParam]"/>
+											<xsl:when test="$positions//position[@value = $position]/label[@lang = $lang]">
+												<xsl:value-of select="$positions//position[@value = $position]/label[@lang = $lang]"/>
 											</xsl:when>
 											<xsl:otherwise>
 												<xsl:value-of select="concat(upper-case(substring($position, 1, 1)), substring($position, 2))"/>
@@ -913,23 +954,16 @@
 									<b>
 										<xsl:choose>
 											<xsl:when test="contains($field, 'symbol_')">
-												<xsl:variable name="position" select="tokenize($field, '_')[3]"/>
-												<xsl:variable name="langParam"
-													select="
-														if (string($lang)) then
-															$lang
-														else
-															'en'"/>
+												<xsl:variable name="position" select="tokenize($field, '_')[3]"/>												
 
 												<xsl:choose>
-													<xsl:when test="$positions//position[@value = $position]/label[@lang = $langParam]">
-														<xsl:value-of select="$positions//position[@value = $position]/label[@lang = $langParam]"/>
+													<xsl:when test="$positions//position[@value = $position]/label[@lang = $lang]">
+														<xsl:value-of select="$positions//position[@value = $position]/label[@lang = $lang]"/>
 													</xsl:when>
 													<xsl:otherwise>
 														<xsl:value-of select="concat(upper-case(substring($position, 1, 1)), substring($position, 2))"/>
 													</xsl:otherwise>
 												</xsl:choose>
-
 											</xsl:when>
 											<xsl:otherwise>
 												<xsl:value-of select="numishare:normalize_fields($field, $lang)"/>

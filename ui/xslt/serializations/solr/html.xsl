@@ -21,16 +21,6 @@
 			</xsl:when>
 		</xsl:choose>
 	</xsl:param>
-	<xsl:variable name="object-path">
-		<xsl:choose>
-			<xsl:when test="//config/collection_type = 'object' and string(//config/uri_space)">
-				<xsl:value-of select="//config/uri_space"/>
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:value-of select="concat($display_path, 'id/')"/>
-			</xsl:otherwise>
-		</xsl:choose>
-	</xsl:variable>
 	
 	<xsl:param name="q" select="doc('input:request')/request/parameters/parameter[name='q']/value"/>
 	<xsl:param name="sort" select="doc('input:request')/request/parameters/parameter[name='sort']/value"/>
@@ -61,7 +51,6 @@
 
 	<!-- config variables -->
 	<xsl:variable name="collection_type" select="/content/config/collection_type"/>
-	<xsl:variable name="sparql_endpoint" select="/content/config/sparql_endpoint"/>
 	<xsl:variable name="url" select="/content/config/url"/>
 	<xsl:variable name="positions" as="node()*">
 		<config>
@@ -70,13 +59,32 @@
 	</xsl:variable>
 
 	<!-- get block of images from SPARQL endpoint, via nomisma API -->
-	<xsl:variable name="sparqlResult" as="element()*">
+	<!--<xsl:variable name="sparqlResult" as="element()*">
 		<xsl:if test="string($sparql_endpoint) and //config/collection_type='cointype'">
-			<xsl:variable name="service" select="concat('http://nomisma.org/apis/numishareResults?identifiers=', encode-for-uri(string-join(descendant::str[@name='recordId'], '|')), '&amp;baseUri=',
-				encode-for-uri(/content/config/uri_space))"/>
-			<xsl:copy-of select="document($service)/response"/>
+			<xsl:choose>
+				<xsl:when test="//config/union_type_catalog/@enabled = true()">
+					<xsl:variable name="identifiers" as="node()*">
+						<identifiers>
+							<xsl:for-each select="descendant::doc">
+								<identifier>
+									<xsl:value-of select="concat(str[@name='uri_space'], str[@name='recordId'])"/>
+								</identifier>
+							</xsl:for-each>
+						</identifiers>
+					</xsl:variable>
+					<xsl:variable name="service" select="concat('http://nomisma.org/apis/numishareResults?identifiers=', encode-for-uri(string-join($identifiers//identifier, '|')))"/>
+					
+					<xsl:copy-of select="document($service)/response"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:variable name="service" select="concat('http://nomisma.org/apis/numishareResults?identifiers=', encode-for-uri(string-join(descendant::str[@name='recordId'], '|')), '&amp;baseUri=',
+						encode-for-uri(/content/config/uri_space))"/>
+					
+					<xsl:copy-of select="document($service)/response"/>
+				</xsl:otherwise>
+			</xsl:choose>
 		</xsl:if>
-	</xsl:variable>
+	</xsl:variable>-->
 
 	<xsl:template match="/">
 		<html>
@@ -173,17 +181,14 @@
 	</xsl:template>
 
 	<xsl:template name="results">
-		<!--<xsl:copy-of select="$sparqlResult"/>-->
 		<div class="container-fluid">
-			<!--<xsl:copy-of select="doc('input:request')"/>-->
-
 			<xsl:if test="$lang='ar'">
 				<xsl:attribute name="style">direction: rtl;</xsl:attribute>
 			</xsl:if>
 			
 			<div class="row">
 				<div class="col-md-9 col-md-push-3">
-					<div class="container-fluid">					
+					<div class="container-fluid">
 						<xsl:call-template name="remove_facets"/>
 						<xsl:choose>
 							<xsl:when test="$numFound &gt; 0">
@@ -287,7 +292,7 @@
 								<!-- the image below is copyright of Silvestre Herrera, available freely on wikimedia commons: http://commons.wikimedia.org/wiki/File:X-office-spreadsheet_Gion.svg -->
 								<img src="{$include_path}/images/spreadsheet.png" title="CSV" alt="CSV"/>
 							</a>
-							<a href="{$display_path}visualize?compare={substring-after($query, 'q=')}">
+							<a href="{$display_path}visualize?compare={if (string($q)) then substring-after($query, 'q=') else '*:*'}">
 								<!-- the image below is copyright of Mark James, available freely on wikimedia commons: http://commons.wikimedia.org/wiki/File:Chart_bar.png -->
 								<img src="{$include_path}/images/visualize.png" title="Visualize" alt="Visualize"/>
 							</a>

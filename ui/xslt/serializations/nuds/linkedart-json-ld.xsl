@@ -162,7 +162,7 @@
 
 				<xsl:apply-templates select="nuds:objectType[@xlink:href] | nuds:denomination[@xlink:href]"/>
 
-				<xsl:for-each select="$coinType_uris/uri">
+				<xsl:for-each select="distinct-values($coinType_uris/uri)">
 					<_object>
 						<id>
 							<xsl:value-of select="."/>
@@ -227,11 +227,11 @@
 
 		<!-- parts -->
 		<xsl:if test="nuds:obverse or nuds:reverse">
-			<parts>
+			<part>
 				<_array>
 					<xsl:apply-templates select="nuds:obverse | nuds:reverse"/>
 				</_array>
-			</parts>
+			</part>
 		</xsl:if>
 	</xsl:template>
 
