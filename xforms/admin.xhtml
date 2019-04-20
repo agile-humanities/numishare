@@ -682,9 +682,16 @@
 
             <xforms:action ev:event="xforms-submit-error">
                 <xforms:setvalue ref="instance('control-instance')/status" value="event('response-body')" />
+                <xforms:message level="modal">
+                    Error posting to 3store.
+                </xforms:message>
+            </xforms:action>
+            <xforms:action ev:event="xforms-submit-done">
+                <xforms:action if="number(instance('xquery-result'))">
+                    <xforms:setvalue ref="instance('control-instance')/status">Successfully posted to 3store.</xforms:setvalue>
+                </xforms:action>
             </xforms:action>
         </xforms:submission>
-
         <!-- ************************* XFORMS-MODEL-CONSTRUCT-DONE ************************** -->
         <xforms:action ev:event="xforms-model-construct-done">
             <!-- load numishare config file on xforms construction -->
