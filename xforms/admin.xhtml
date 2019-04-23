@@ -701,6 +701,14 @@
 					ref="instance('pagination-result')//record[id=instance('control-instance')/id]/published" value="true()"/>
 			</xforms:submission>
 
+			<!-- ************************* EXIST SUBMISSIONS FOR POSTING TO TRIPLE STORE************************** -->
+			<xforms:submission id="post-to-3store" ref="instance('collections-list')"
+					   resource="{instance('exist-config')/url}{instance('control-instance')/collection-name}/post-to-3store.xq"
+					   method="get" replace="none"
+					   xxforms:username="{instance('exist-config')/username}" xxforms:password="{instance('exist-config')/password}">
+				<xforms:message ev:event="xforms-submit-error" level="modal">Error posting to 3store.</xforms:message>
+			</xforms:submission>
+
 			<!-- ************************* XFORMS-MODEL-CONSTRUCT-DONE ************************** -->
 			<xforms:action ev:event="xforms-model-construct-done">
 				<!-- load numishare config file on xforms construction -->
@@ -1065,6 +1073,12 @@
 										</ul>
 										<h2>Publication</h2>
 										<ul>
+										  <li>
+										    <xforms:trigger appearance="minimal">
+										      <xforms:label>Put them in 3store</xforms:label>
+										      <xforms:dispatch target="publish-3store-dialog" name="fr-show" ev:event="DOMActivate"/>
+										    </xforms:trigger>
+										  </li>
 											<li>
 												<xforms:trigger appearance="minimal">
 													<xforms:label>Publish All Approved Objects</xforms:label>
@@ -1436,6 +1450,18 @@
 				</xforms:action>
 			</fr:positive-choice>
 		</fr:alert-dialog>
+		<fr:alert-dialog id="publish-3store-dialog">
+			<fr:label>Publish to Fueski</fr:label>
+			<fr:message>Do you want to publish to 3store? This may take several minutes.</fr:message>
+			<fr:negative-choice>
+				<fr:label>No</fr:label>
+			</fr:negative-choice>
+			<fr:positive-choice>
+			  <fr:label>Yes</fr:label>
+			  <xforms:send submission="post-to-3store"/>
+			</fr:positive-choice>
+		</fr:alert-dialog>
+
 		<fr:alert-dialog id="unpublish-all">
 			<fr:label>Unpublish All</fr:label>
 			<fr:message>Do you want to unpublish all objects?</fr:message>
