@@ -676,7 +676,15 @@
       </xforms:submission>
 
       <!-- ************************* EXIST SUBMISSIONS FOR POSTING TO TRIPLE STORE************************** -->
-      <xforms:submission id="post-to-3store" resource="{instance('exist-config')/url}{instance('control-instance')/collection-name}/post-to-3store.xq" serialization="none" method="get" replace="instance" instance="3store-xquery-result" xxforms:username="{instance('exist-config')/username}" xxforms:password="{instance('exist-config')/password}">
+      <xforms:submission id="post-to-3store"
+			 resource="{instance('exist-config')/url}{instance('control-instance')/collection-name}/post-to-3store.xq?recordId={instance('control-instance')/id}"
+			 ref="instance('control-instance')"
+			 instance="control-instance"
+			 replace="none"
+			 serialization="none"
+			 method="get"
+			 xxforms:username="{instance('exist-config')/username}"
+			 xxforms:password="{instance('exist-config')/password}">
 
         <xforms:action ev:event="xforms-submit-error">
           <xforms:setvalue ref="instance('control-instance')/status" value="event('response-body')" />
@@ -689,16 +697,44 @@
         </xforms:action>
       </xforms:submission>
 
+      <xforms:submission id="post-all-to-3store" resource="{instance('exist-config')/url}{instance('control-instance')/collection-name}/post-to-3store.xq" serialization="none" method="get" replace="instance" instance="3store-xquery-result" xxforms:username="{instance('exist-config')/username}" xxforms:password="{instance('exist-config')/password}">
+
+        <xforms:action ev:event="xforms-submit-error">
+          <xforms:setvalue ref="instance('control-instance')/status" value="event('response-body')" />
+          <xforms:message level="modal">Error posting all to 3store.</xforms:message>
+        </xforms:action>
+        <xforms:action ev:event="xforms-submit-done">
+          <xforms:action if="number(instance('xquery-result'))">
+            <xforms:setvalue ref="instance('control-instance')/status">Successfully posted to 3store.</xforms:setvalue>
+          </xforms:action>
+        </xforms:action>
+      </xforms:submission>
+
       <xforms:submission id="delete-all-from-3store" resource="{instance('exist-config')/url}{instance('control-instance')/collection-name}/delete-from-3store.xq" serialization="none" method="get" replace="instance" instance="3store-xquery-result" xxforms:username="{instance('exist-config')/username}" xxforms:password="{instance('exist-config')/password}">
-        <xforms:message ev:event="xforms-submit-error" level="modal">Error deleting from 3store.</xforms:message>
+        <xforms:message ev:event="xforms-submit-error" level="modal">Error deleting all from 3store.</xforms:message>
         <xforms:action ev:event="xforms-submit-done">
           <xforms:action if="number(instance('xquery-result'))">
             <xforms:setvalue ref="instance('control-instance')/status">Successfully deleted all from 3store.</xforms:setvalue>
           </xforms:action>
         </xforms:action>
-
       </xforms:submission>
 
+      <xforms:submission id="delete-object-from-3store"
+			 resource="{instance('exist-config')/url}{instance('control-instance')/collection-name}/delete-from-3store.xq?recordId={instance('control-instance')/id}"
+			 ref="instance('control-instance')"
+			 instance="control-instance"
+			 replace="none"
+			 serialization="none"
+			 method="get"
+			 xxforms:username="{instance('exist-config')/username}"
+			 xxforms:password="{instance('exist-config')/password}">
+        <xforms:message ev:event="xforms-submit-error" level="modal">Error deleting object from 3store.</xforms:message>
+        <xforms:action ev:event="xforms-submit-done">
+          <xforms:action if="number(instance('xquery-result'))">
+            <xforms:setvalue ref="instance('control-instance')/status">Successfully deleted object from 3store.</xforms:setvalue>
+          </xforms:action>
+        </xforms:action>
+      </xforms:submission>
 
       <!-- ************************* XFORMS-MODEL-CONSTRUCT-DONE ************************** -->
       <xforms:action ev:event="xforms-model-construct-done">
@@ -1277,6 +1313,8 @@
                                           <!-- update publicationStatus -->
                                           <xforms:setvalue ref="instance('control-instance')/publicationStatus">inProcess</xforms:setvalue>
                                           <xforms:send submission="load-object" />
+					  <!-- delete from 3store -->
+					  <xforms:send submission="delete-object-from-3store" />
                                           <!-- delete from Solr -->
                                           <xforms:setvalue ref="instance('deleteId')/query" value="concat('recordId:&#x022;', instance('control-instance')/id, '&#x022;')" />
                                           <xforms:send submission="delete-solr-doc" />
@@ -1293,6 +1331,8 @@
                                           <xforms:setvalue ref="instance('control-instance')/id" value="$id" />
                                           <xforms:setvalue ref="instance('control-instance')/publicationStatus">approved</xforms:setvalue>
                                           <xforms:send submission="load-object" />
+					  <!-- publish to 3store -->
+					  <xforms:send submission="post-to-3store" />
                                           <!-- publish to solr -->
                                           <xforms:send submission="nuds-to-solr" />
                                           <xforms:send submission="submit-commit" />
@@ -1378,7 +1418,7 @@
           <xforms:setvalue ref="instance('deleteId')/query" value="concat('recordId:&#x022;', instance('control-instance')/id, '&#x022;')" />
           <xforms:send submission="delete-solr-doc" />
 	  <!-- also delete from 3store TK -->
-
+	  <xforms:send submission="delete-object-from-3store" />
           <!-- get new numCount -->
           <xforms:setvalue ref="instance('eXist-xquery')/exist:text" value="instance('xqueries')/query[@id='collection-count']" />
           <xforms:send submission="xquery-collection" />
@@ -1401,7 +1441,7 @@
       <fr:positive-choice>
         <fr:label>Yes</fr:label>
         <xforms:action ev:event="DOMActivate">
-	  <xforms:send submission="post-to-3store" />
+	  <xforms:send submission="post-all-to-3store" />
           <xforms:var name="count" select="if (instance('config')/collection_type='hoard') then '25' else '100'" />
           <xforms:setvalue ref="instance('eXist-xquery')/exist:text" value="replace(instance('xqueries')/query[@id='publish-all'], 'COUNT', $count)" />
           <xforms:send submission="xquery-collection" />
@@ -1431,7 +1471,7 @@
       <fr:positive-choice>
         <fr:label>Yes</fr:label>
         <xforms:action ev:event="DOMActivate">
-          <xforms:send submission="post-to-3store" />
+          <xforms:send submission="post-all-to-3store" />
         </xforms:action>
       </fr:positive-choice>
     </fr:alert-dialog>
