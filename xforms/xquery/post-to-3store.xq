@@ -5,10 +5,14 @@ declare namespace nuds = "http://nomisma.org/nuds";
 import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace hc = "http://expath.org/ns/http-client";
 
-
+let $recordId := request:get-parameter("recordId", ())
 
 let $collection := replace(request:get-effective-uri(), "^/.*/db/(.*)/.*$", "/db/$1")
-let $objects := collection($collection)/nuds:nuds[nuds:control/nuds:publicationStatus = 'approved']
+let $objects :=
+    if ($recordId) then
+       collection($collection)/nuds:nuds[nuds:control/nuds:recordId = $recordId]
+    else
+       collection($collection)/nuds:nuds[nuds:control/nuds:publicationStatus = 'approved']
 
 (: The Graph Store Protocol posts to '/data', not '/query' :)
 let $sparql_endpoint := concat(replace(collection($collection)/config/sparql_endpoint, "/query$", ""),"/data")
@@ -18,11 +22,13 @@ let $uri_space := collection($collection)/config/uri_space
 
 let $posts :=
  for $object in $objects
- let $response := hc:send-request(<hc:request method="post" href="{$sparql_endpoint}">
-                                    <hc:header name="Cache-Control" value="no-cache"/>
-                                    <hc:body media-type="application/rdf+xml">{ doc($uri_space || $object/nuds:control/nuds:recordId || ".rdf") }</hc:body>
-                                  </hc:request>) 
- return $response[1]
+  let $response := hc:send-request(<hc:request method="post" href="{$sparql_endpoint}">
+                                      <hc:header name="Cache-Control" value="no-cache"/>
+                                      <hc:body media-type="application/rdf+xml">
+				        { doc($uri_space || $object/nuds:control/nuds:recordId || ".rdf") }
+				      </hc:body>
+				   </hc:request>)
+  return $response[1]
 
 return
  <result>{$posts}</result>
